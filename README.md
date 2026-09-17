@@ -1,17 +1,19 @@
 # Runway Lab
 
-**Scenario-based financial planning for startups.**
+**Interactive financial modeling and scenario planning.**
 
-Runway Lab turns historical startup financials into transparent, interactive operating scenarios. Founders can change hiring, growth, infrastructure, marketing, and financing assumptions, then see exactly how those decisions affect cash, burn, break-even, and runway.
+Runway Lab turns historical financial data into transparent, interactive operating scenarios. Users can change revenue growth, staffing, infrastructure, marketing, and financing assumptions, then see how those decisions affect cash flow, expenses, break-even, and runway.
+
+I built this as a personal learning project to apply concepts from my AFM 191 accounting coursework through software development. It also gave me a practical way to explore how fintech products represent financial models, experiment with React application architecture, and build interactive 3D visualizations with Three.js.
 
 The central rule is simple: **AI may structure an input or explain an output, but it never calculates a financial result.** Every number shown in the product comes from the same deterministic TypeScript engine.
 
 ## What is included
 
-- Polished dark-mode landing page and financial workspace
-- Acme AI sample company with 12 months of historical actuals
+- Polished dark-mode financial workspace
+- Acme AI sample business with 12 months of historical actuals
 - Integrated three-statement model with 12 Actual and 12 Forecast columns
-- Live scenario builder for growth, costs, hires, and funding events
+- Live scenario builder for growth, operating costs, staffing, and financing events
 - Side-by-side comparison and calculated runway attribution
 - Recharts analysis and an interactive React Three Fiber **Runway Landscape**
 - CSV import, validated command parser, and Supabase schema with RLS
@@ -120,4 +122,4 @@ The included local parser works without an API key. To enable Gemini interpretat
 
 ## Design intent
 
-Runway Lab is an original interpretation of forward-looking startup finance software. It favors calm density, visible assumptions, restrained motion, and decision-useful visualization over decorative dashboard patterns.
+Runway Lab is a personal exploration of accounting, financial modeling, fintech, and interactive software. The interface favors calm density, visible assumptions, restrained motion, and decision-useful visualization over decorative dashboard patterns.
