@@ -11,7 +11,7 @@ The central rule is simple: ****AI may structure an input or explain an output, 
 ## What is included
 
 - Polished dark-mode financial workspace
-- Acme AI sample business with 12 months of historical actuals
+- Sample business data with 12 months of historical actuals, used for demo'ing
 - Integrated three-statement model with 12 Actual and 12 Forecast columns
 - Live scenario builder for growth, operating costs, staffing, and financing events
 - Side-by-side comparison and calculated runway attribution
