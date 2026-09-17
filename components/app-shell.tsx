@@ -8,6 +8,7 @@ import { CommandPalette } from "./command-palette";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { AccountControl } from "./account-control";
+import { ModelSetupDialog } from "./model-setup-dialog";
 
 const nav = [
   { href: "/dashboard", label: "Overview", icon: BarChart3 },
@@ -62,6 +63,7 @@ export function AppShell({ children, title, action }: { children: React.ReactNod
         <div className="mx-auto max-w-[1500px] p-4 md:p-7">{children}</div>
       </main>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <ModelSetupDialog />
     </div>
   );
 }

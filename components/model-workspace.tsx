@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Download, FileSpreadsheet, FileUp, RotateCcw, XCircle } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { forecast } from "@/lib/forecasting/engine";
 import type { Assumptions, ForecastMonth, HistoricalMonth, ModelOverride } from "@/lib/forecasting/types";
 import { money, monthLabel, percent } from "@/lib/format";
@@ -216,7 +216,7 @@ function CellInput({ value, percentValue, onChange }: { value: number; percentVa
 }
 
 export function ModelWorkspace() {
-  const { history, setHistory, assumptions, activeScenarioId, scenarios, setActiveScenarioId, overrides: drivers, setOverrides: setDrivers, pendingImport, setPendingImport, resolvedImportIssues, setResolvedImportIssues, resetModel } = useFinancialModel();
+  const { history, setHistory, assumptions, activeScenarioId, scenarios, setActiveScenarioId, overrides: drivers, setOverrides: setDrivers, pendingImport, setPendingImport, resolvedImportIssues, setResolvedImportIssues, setupImportInProgress, completeCloudSetup, cancelSetupImport, resetModel } = useFinancialModel();
   const [statement, setStatement] = useState<Statement>("income");
   const [message, setMessage] = useState<string | null>(null);
   const [importReport, setImportReport] = useState<FinancialWorkbookResult | null>(null);
@@ -228,6 +228,14 @@ export function ModelWorkspace() {
   const projections = useMemo(() => projectedSheet(workingHistory, drivers, assumptions), [workingHistory, drivers, assumptions]);
   const columns = [...actuals, ...projections];
   const rows = statementRows[statement];
+
+  useEffect(() => {
+    if (!pendingImport || importReport) return;
+    setImportReport(pendingImport.report);
+    setReviewOpen(true);
+    const errors = pendingImport.report.issues.filter((issue) => issue.severity === "error").length;
+    setMessage(`Import blocked · ${errors} reconciliation ${errors === 1 ? "error" : "errors"}`);
+  }, [pendingImport, importReport]);
 
   function editActual(columnIndex: number, key: HistoricalEditableKey, value: number) {
     if (pendingImport) setPendingImport((current) => current ? { ...current, history: updateHistoricalActual(current.history, columnIndex, key, value) } : current);
@@ -297,6 +305,7 @@ export function ModelWorkspace() {
     setReviewOpen(false);
     setMessage(`${pendingImport.history.length} reconciled months imported`);
     setImportReport((current) => current ? { ...current, issues: current.issues.filter((issue) => issue.severity === "warning") } : current);
+    if (setupImportInProgress) completeCloudSetup();
   }
 
   function discardImport() {
@@ -305,6 +314,7 @@ export function ModelWorkspace() {
     setResolvedImportIssues(new Set());
     setReviewOpen(false);
     setMessage(null);
+    cancelSetupImport();
   }
 
   return <section className="panel overflow-hidden">

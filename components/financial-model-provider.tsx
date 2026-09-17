@@ -33,11 +33,17 @@ type ModelContextValue = {
   applyAgentActions: (actions: AgentAction[]) => void;
   cloudStatus: CloudStatus;
   cloudMessage: string | null;
+  setupRequired: boolean;
+  setupImportInProgress: boolean;
+  completeCloudSetup: () => void;
+  continueSetupWithImport: () => void;
+  cancelSetupImport: () => void;
   resetModel: () => void;
 };
 
 const ModelContext = createContext<ModelContextValue | null>(null);
 export const MODEL_STORAGE_KEY = "runway-lab-model-v3";
+const SETUP_STORAGE_KEY = "runway-lab-setup-complete-v1";
 const colors = ["#5f7bd8", "#3c8e9e", "#8a72c7", "#c17c45", "#b96672", "#587ea8"];
 
 export function overridesFor(assumptions: Assumptions): ModelOverride[] {
@@ -83,8 +89,11 @@ export function FinancialModelProvider({ children }: { children: React.ReactNode
   const [localHydrated, setLocalHydrated] = useState(false);
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>("checking");
   const [cloudMessage, setCloudMessage] = useState<string | null>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
+  const [setupImportInProgress, setSetupImportInProgress] = useState(false);
   const cloudStarted = useRef(false);
   const cloudReady = useRef(false);
+  const cloudAuthenticated = useRef(false);
   const skipNextCloudSave = useRef(false);
   const activeScenario = scenarioPlans.find((scenario) => scenario.id === activeScenarioId) ?? scenarioPlans[0];
 
@@ -117,26 +126,34 @@ export function FinancialModelProvider({ children }: { children: React.ReactNode
         if (response.status === 401 || response.status === 503) {
           setCloudStatus("local");
           setCloudMessage(response.status === 503 ? "Connect Supabase to enable cloud save." : "Sign in to enable cloud save.");
+          if (!localStorage.getItem(SETUP_STORAGE_KEY)) setSetupRequired(true);
           return;
         }
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "Could not load cloud data.");
+        cloudAuthenticated.current = true;
         if (data.state) {
           const saved = data.state as ModelState;
           skipNextCloudSave.current = true;
           setHistory(saved.history);
           setScenarioPlans(saved.scenarios.map((scenario, index) => ({ ...scenario, color: scenario.color || colors[index % colors.length] })));
           setActiveScenarioIdState(saved.activeScenarioId);
+          localStorage.setItem(SETUP_STORAGE_KEY, "true");
+          cloudReady.current = true;
+          setCloudStatus("saved");
+          setCloudMessage("Loaded from cloud.");
         } else {
           const saveResponse = await fetch("/api/model-state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(modelState(history, scenarioPlans, activeScenarioId)) });
           if (!saveResponse.ok) throw new Error((await saveResponse.json()).error ?? "Could not create cloud save.");
+          cloudReady.current = true;
+          setCloudStatus("saved");
+          setCloudMessage("This browser model is now saved to your account.");
+          localStorage.setItem(SETUP_STORAGE_KEY, "true");
         }
-        cloudReady.current = true;
-        setCloudStatus("saved");
-        setCloudMessage(data.state ? "Loaded from cloud." : "This browser model is now saved to your account.");
       } catch (error) {
         setCloudStatus("error");
         setCloudMessage(error instanceof Error ? error.message : "Cloud save is unavailable.");
+        if (!localStorage.getItem(SETUP_STORAGE_KEY)) setSetupRequired(true);
       }
     })();
   }, [localHydrated, history, scenarioPlans, activeScenarioId]);
@@ -161,7 +178,7 @@ export function FinancialModelProvider({ children }: { children: React.ReactNode
       }
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [history, scenarioPlans, activeScenarioId, localHydrated]);
+  }, [history, scenarioPlans, activeScenarioId, localHydrated, setupRequired]);
 
   function updateActive(update: (scenario: ScenarioPlan) => ScenarioPlan) {
     setScenarioPlans((current) => current.map((scenario) => scenario.id === activeScenarioId ? update(scenario) : scenario));
@@ -239,6 +256,33 @@ export function FinancialModelProvider({ children }: { children: React.ReactNode
     },
     cloudStatus,
     cloudMessage,
+    setupRequired,
+    setupImportInProgress,
+    completeCloudSetup: () => {
+      localStorage.setItem(SETUP_STORAGE_KEY, "true");
+      setSetupRequired(false);
+      setSetupImportInProgress(false);
+      if (cloudAuthenticated.current) {
+        cloudReady.current = true;
+        setCloudStatus("saving");
+        setCloudMessage("Creating your cloud model.");
+      } else {
+        setCloudStatus("local");
+        setCloudMessage("Saved in this browser. Sign in to enable cloud save.");
+      }
+    },
+    continueSetupWithImport: () => {
+      setSetupRequired(false);
+      setSetupImportInProgress(true);
+      setCloudStatus("local");
+      setCloudMessage("Import in progress; cloud save starts after statements are applied.");
+    },
+    cancelSetupImport: () => {
+      if (!setupImportInProgress) return;
+      setSetupImportInProgress(false);
+      setSetupRequired(true);
+      setCloudMessage("Choose how to set up your financial model.");
+    },
     resetModel: () => {
       localStorage.removeItem(MODEL_STORAGE_KEY);
       setHistory(historicalMonths);
@@ -248,7 +292,7 @@ export function FinancialModelProvider({ children }: { children: React.ReactNode
       setPendingImport(null);
       setResolvedImportIssues(new Set());
     },
-  }), [history, scenarioPlans, activeScenarioId, activeScenario, pendingImport, resolvedImportIssues, cloudStatus, cloudMessage]);
+  }), [history, scenarioPlans, activeScenarioId, activeScenario, pendingImport, resolvedImportIssues, cloudStatus, cloudMessage, setupRequired, setupImportInProgress]);
 
   return <ModelContext.Provider value={value}>{children}</ModelContext.Provider>;
 }
