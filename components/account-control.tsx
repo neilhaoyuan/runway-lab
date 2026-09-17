@@ -42,7 +42,7 @@ export function AccountControl() {
 
   const statusText = user
     ? model.cloudStatus === "saving" ? "Saving…" : model.cloudStatus === "saved" ? "Saved" : model.cloudStatus === "error" ? "Sync issue" : "Cloud"
-    : "Local only";
+    : "Sign in";
   const StatusIcon = user ? model.cloudStatus === "saving" || model.cloudStatus === "loading" ? LoaderCircle : model.cloudStatus === "error" ? CloudOff : Cloud : CloudOff;
 
   return <>
