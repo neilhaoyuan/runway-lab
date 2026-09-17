@@ -2,11 +2,11 @@
 
 **Interactive financial modeling and scenario planning.**
 
-Runway Lab turns historical financial data into transparent, interactive operating scenarios. Users can change revenue growth, staffing, infrastructure, marketing, and financing assumptions, then see how those decisions affect cash flow, expenses, break-even, and runway.
+Runway Lab is an app that turns historical financial data into transparent, interactive operating scenarios. Users can change revenue growth, staffing, infrastructure, marketing, and financing assumptions, then see how those decisions affect cash flow, expenses, break-even, and runway.
 
 I built this as a personal learning project to apply concepts from my AFM 191 accounting coursework through software development. It also gave me a practical way to explore how fintech products represent financial models, experiment with React application architecture, and build interactive 3D visualizations with Three.js.
 
-The central rule is simple: **AI may structure an input or explain an output, but it never calculates a financial result.** Every number shown in the product comes from the same deterministic TypeScript engine.
+The central rule is simple: ****AI may structure an input or explain an output, but it never calculates a financial result.**** Every number shown in the product comes from the same deterministic TypeScript code.
 
 ## What is included
 
