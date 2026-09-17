@@ -3,7 +3,7 @@ import "./globals.css";
 import { FinancialModelProvider } from "@/components/financial-model-provider";
 
 export const metadata: Metadata = {
-  title: "Runway Lab — Startup scenario planning",
+  title: "Runway Lab",
   description: "Turn startup financial actuals into interactive operating scenarios.",
 };
 
